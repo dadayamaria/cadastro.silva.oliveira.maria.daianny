@@ -8,6 +8,9 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class MainRepositorio {
     Context context;
@@ -23,16 +26,25 @@ public class MainRepositorio {
      */
     public boolean cadastrar(String novoNome, String novoCpf,String novoEmail, String novoTelefone, String novoDataNasc) {
 
-        // Cria uma requisição HTTP a adiona o parâmetros que devem ser enviados ao servidor
-        HttpRequest httpRequest = new HttpRequest(Config.CADASTRO_APP_URL + "cadastramento.php", "POST", "UTF-8");
-        httpRequest.addParam("nome", novoNome);
-        httpRequest.addParam("cpf", novoCpf);
-        httpRequest.addParam("email", novoEmail);
-        httpRequest.addParam("phone", novoTelefone);
-        httpRequest.addParam("d_nasc", novoDataNasc);
+
 
         String result = "";
         try {
+
+            SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+            Date date = formatter.parse(novoDataNasc);
+
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+            String requiredDate = df.format(date).toString();
+
+            // Cria uma requisição HTTP a adiona o parâmetros que devem ser enviados ao servidor
+            HttpRequest httpRequest = new HttpRequest(Config.CADASTRO_APP_URL + "cadastramento.php", "POST", "UTF-8");
+            httpRequest.addParam("nome", novoNome);
+            httpRequest.addParam("cpf", novoCpf);
+            httpRequest.addParam("email", novoEmail);
+            httpRequest.addParam("phone", novoTelefone);
+            httpRequest.addParam("d_nasc", requiredDate);
+
             // Executa a requisição HTTP. É neste momento que o servidor web é contactado. Ao executar
             // a requisição é aberto um fluxo de dados entre o servidor e a app (InputStream is).
             InputStream is = httpRequest.execute();
@@ -70,6 +82,8 @@ public class MainRepositorio {
         } catch (JSONException e) {
             e.printStackTrace();
             Log.e("HTTP RESULT", result);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
         }
         return false;
 
